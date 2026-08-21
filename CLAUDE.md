@@ -1,6 +1,6 @@
 # Contexto del frontend — ProyectoX (clínica odontológica)
 
-Fuente: `ProyectoXContext.txt` + `ContextProyectoX.jpeg` (diagrama de flujo del sistema), cargados desde el escritorio de Osval el 2026-08-17. Actualizado 2026-08-21 tras terminar el flujo público de agendamiento y antes de una sesión nocturna sin supervisión para el CRUD admin.
+Fuente: `ProyectoXContext.txt` + `ContextProyectoX.jpeg` (diagrama de flujo del sistema), cargados desde el escritorio de Osval el 2026-08-17. Actualizado 2026-08-21 tras terminar el flujo público de agendamiento y, más tarde ese mismo día, tras la sesión del CRUD admin completo (ver "Decisiones tomadas de forma autónoma" más abajo).
 
 ## Contexto general
 Aplicación de gestión para clínica odontológica, destinada a venta a un cliente real. El backend ya fue construido por un compañero (Node.js + Express + MongoDB, arquitectura por capas routes → controllers → services, no hexagonal). Osval es responsable exclusivamente del frontend, y React es tecnología nueva para él. Prioridad: MVP funcional en producción, no perfección arquitectónica.
@@ -38,14 +38,14 @@ Vite, React Router, Tailwind v4, TanStack Query v5, `lucide-react` (agregado 202
 ## Estructura de carpetas
 ```
 src/
-  api/            → client.js, auth.js, servicios.js (+obtenerServicio), citas.js (+obtenerHorasOcupadas, +solicitarCita), odontologos.js
+  api/            → client.js, auth.js, servicios.js (+crearServicio/actualizarServicio/eliminarServicio), citas.js (+obtenerHorasOcupadas, +solicitarCita, +obtenerCitasOdontologo, +obtenerCitas), odontologos.js (+crearOdontologo/actualizarOdontologo/eliminarOdontologo), especialidades.js (CRUD completo)
   components/
     public/       → TopBar, Navbar, Hero, Bienvenida (+ICONOS_DIFERENCIALES), Servicios, Novedades, Contacto, Footer
-    admin/        → Sidebar.jsx, AdminLayout.jsx
+    admin/        → Sidebar.jsx, AdminLayout.jsx, ModalFormulario.jsx (chrome compartido por los 3 CRUD, prop `ancho` opcional)
   context/        → AuthContext.jsx
-  data/           → clinica.js (solo datos — sin imports de UI/íconos, a propósito)
+  data/           → clinica.js, diasSemana.js (DIAS_SEMANA/DIAS_EDITOR — fuente única para admin y flujo público; solo datos, sin imports de UI, a propósito)
   pages/
-    admin/        → Login.jsx, Citas.jsx, ServiciosAdmin.jsx / OdontologosAdmin.jsx / EspecialidadesAdmin.jsx (placeholders — próximo trabajo), Dashboard.jsx (obsoleto, pendiente de borrar)
+    admin/        → Login.jsx, Citas.jsx, ServiciosAdmin.jsx / OdontologosAdmin.jsx / EspecialidadesAdmin.jsx (CRUD completo, 2026-08-21)
     public/       → Home.jsx, FlujoAgendamiento.jsx (padre con estado elevado + Outlet)
       agendar/    → ServicioDetalle.jsx, DatosPaciente.jsx, Confirmacion.jsx — los 3 implementados y verificados
   routes/         → ProtectedRoute.jsx
@@ -62,13 +62,13 @@ media/            → imágenes, importadas con rutas relativas
 - "Historial de búsqueda" admin: descartado del MVP.
 
 ## Login admin
-`useState` por campo, validación solo backend, "Redirect + ProtectedRoute". **Bug encontrado, pendiente de corregir**: navega a `/admin/dashboard` tras login exitoso, ruta que no existe en `App.jsx` (el índice de `/admin` redirige a `citas`) — incluido en el alcance de la sesión nocturna.
+`useState` por campo, validación solo backend, "Redirect + ProtectedRoute". Navega a `/admin/citas` tras login exitoso (**bug corregido 2026-08-21**: antes navegaba a `/admin/dashboard`, ruta inexistente en `App.jsx`).
 
 ## Home (`/`)
 Landing de una sola página estilo odontoss.com, paleta teal: TopBar, Navbar, Hero, Bienvenida, Servicios (tarjetas sin precio, `<Link>` a `/agendar/servicio/:id`), Novedades, Contacto, Footer. Contenido estático en `src/data/clinica.js` (**sigue siendo placeholder** — Osval no tiene la info real todavía, no es tarea de la sesión nocturna). Verificado con build + capturas.
 
 ## Panel administrativo (`/admin/*`)
-Sidebar fijo en desktop / hamburguesa+overlay en móvil. Alcance decidido: citas + servicios + odontólogos + especialidades (todos los recursos). `/admin/citas` implementado (filtro por fecha, tabla paciente/teléfono/correo/hora/servicio/precio/estado). **Servicios/Odontólogos/Especialidades: siguen como placeholders — es el trabajo de la sesión nocturna del 2026-08-21, ver especificación completa más abajo.**
+Sidebar fijo en desktop / hamburguesa+overlay en móvil. Alcance decidido: citas + servicios + odontólogos + especialidades (todos los recursos). `/admin/citas` implementado (filtro por fecha, tabla paciente/teléfono/correo/hora/servicio/precio/estado). **Servicios/Odontólogos/Especialidades: CRUD completo (2026-08-21, sesión nocturna) — tabla + modal crear/editar con validación cliente + `useMutation`/`invalidateQueries` + eliminar con advertencia (no bloqueo) si hay recursos asociados. Verificado con Playwright contra mocks, ver especificación completa y "Decisiones tomadas de forma autónoma" más abajo. Pendiente probar contra el backend real.**
 
 ## Flujo de agendamiento público — `/agendar/*` — COMPLETO (2026-08-21)
 - **`FlujoAgendamiento.jsx`** (ruta padre `/agendar`): solo contiene el estado elevado y el `<Outlet />`, sin UI propia.
@@ -130,6 +130,16 @@ Nadie va a dejar `localhost:3000` corriendo toda la noche, así que ninguna llam
 ### Modo de autonomía para lo no cubierto acá (decidido: decidir y documentar)
 Ante cualquier decisión de diseño o implementación que este documento no cubra, tomar la opción más conservadora y más consistente con los patrones ya construidos (estilo visual teal/`rounded-2xl`, patrón de tabla de `Citas.jsx`, patrón de validación de `DatosPaciente.jsx`, mismo trato de "avisar y no tocar" para huecos del backend compartido), seguir avanzando, y anotar la decisión y su razón en la sección "Decisiones tomadas de forma autónoma" más abajo (crearla si hace falta). No detenerse a esperar respuesta — no hay nadie para responder durante la noche.
 
+### Decisiones tomadas de forma autónoma (noche del 2026-08-21)
+- **Estado roto de git al empezar**: quedaba un `.git/index.lock` viejo (de un intento anterior cortado a medias) bloqueando cualquier commit, y el `origin` estaba configurado con la URL literal `TU_URL_AQUI` en vez del repo real. Verifiqué que no hubiera ningún proceso de git corriendo, borré el lock, corregí el `origin` a `https://github.com/Osval28/frontend-clinica.git`, hice el commit inicial y pusheé — funcionó sin pedir login interactivo en ningún momento de la noche, así que **todos los commits de esta sesión ya están en GitHub**, no hace falta que Osval haga push él mismo.
+- **`src/data/diasSemana.js` (nuevo)**: los 7 strings de día que exige el backend (`Odontologo.horario.dia`, incluida la falta de tilde en "Sabado") vivían hardcodeados solo en `ServicioDetalle.jsx`. Los extraje a un archivo de datos puro compartido (`DIAS_SEMANA` indexado como `Date.getDay()`, `DIAS_EDITOR` reordenado Lunes→Domingo) para que el editor de horario del admin y la pantalla pública de agendamiento no puedan divergir en el string exacto de cada día. `ServicioDetalle.jsx` ahora importa desde ahí (diff de 2 líneas); re-verifiqué su flujo completo con Playwright después del cambio, sigue intacto.
+- **Editor de horario de Odontólogos — matching por normalización de acentos**: al precargar el horario de un odontólogo para editar, comparo los 7 días de la plantilla contra `horario[].dia` normalizando acentos/mayúsculas (`normalize('NFD')` + lowercase) en vez de `===` estricto, para no perder silenciosamente un día si la DB tiene una tilde distinta a la canónica (ej. "Sábado" en vez de "Sabado"). Al guardar, siempre se reescribe el string canónico. Verificado con un caso de prueba que mezcla ambos.
+- **Odontólogos — al menos 1 día de horario activo para poder guardar**: la spec no lo pedía explícitamente, pero un odontólogo con horario vacío nunca podría recibir una cita (`ServicioDetalle.jsx` nunca encontraría `horarioDelDia`), así que el formulario bloquea el submit si no hay ningún día activado.
+- **Servicios — `duracion` debe ser entero y mayor a 0** (la spec decía "requerido, ≥0"): un servicio de 0 minutos nunca genera slots en `generarSlots` de `ServicioDetalle.jsx`, así que 0 se trata como inválido en el formulario aunque el backend podría aceptarlo.
+- **`ModalFormulario.jsx` — prop `ancho` opcional** (default `'max-w-lg'`, sin cambiar el comportamiento existente): el editor de horario de Odontólogos necesita más espacio, así que ese modal en particular usa `ancho="max-w-2xl"`; Especialidades y Servicios siguen con el ancho default.
+- **Chequeos de citas asociadas al eliminar (Odontólogos y Servicios) son perezosos, no precargados**: se disparan recién al abrir el modal de confirmación (`useQuery({ enabled: Boolean(aEliminar) })`), no junto con el listado — evita una llamada de red innecesaria en cada visita a la pantalla. Si el chequeo falla (ej. token vencido), se muestra una nota neutra pero **el botón de eliminar sigue habilitado** — consistente con "eliminar nunca bloquea, solo advierte".
+- **Bug encontrado y corregido: el banner de error de `useMutation` quedaba pegado entre aperturas del modal.** `useMutation` no limpia su `error` solo porque el modal se cerró, así que un intento fallido (ej. correo duplicado) seguía mostrando el mismo banner rojo la próxima vez que se abría el modal para crear o editar, aunque no tuviera nada que ver. Se agregó `mutCrear.reset()` / `mutActualizar.reset()` al abrir el modal en los 3 CRUD. Encontrado durante la verificación con Playwright de Odontólogos (una captura mostraba el error de un test anterior en la pantalla de edición); como `EspecialidadesAdmin.jsx` ya estaba comiteado y pusheado con el mismo bug, se corrigió con un commit nuevo (`fix: resetear error de mutacion al reabrir el modal de especialidades`) en vez de amend, para no reescribir historial ya en GitHub.
+
 ### Qué debe quedar listo para la revisión de mañana
 - Los 3 CRUD funcionando de punta a punta contra mocks (verificado con Playwright + capturas).
 - `vite build` limpio.
@@ -139,14 +149,13 @@ Ante cualquier decisión de diseño o implementación que este documento no cubr
 - La sección "Decisiones tomadas de forma autónoma" (crearla si hace falta) con cada decisión no cubierta acá que se haya tenido que tomar sola, para que Osval la revise en minutos en vez de releer todo el código.
 
 ## Pendiente de resolver (abierto)
-- Ejecutar la especificación de sesión nocturna de arriba (CRUD admin completo).
+- Probar los 3 CRUD nuevos (Especialidades/Odontólogos/Servicios) y `/admin/citas` con el backend real prendido — toda la verificación de esta noche fue contra mocks, ver "Decisiones tomadas de forma autónoma" arriba.
 - Probar `/admin/citas` y el endpoint de disponibilidad con datos reales (ver fragilidad de fechas arriba) — requiere backend real, no es tarea nocturna.
 - Avisarle al compañero de los cambios pendientes en su backend: bloqueo de `/register`, endpoint de disponibilidad nuevo, y las rutas de escritura de servicios/odontólogos/especialidades sin `validarJWT`.
 - Confirmar si el admin que ya existe en la DB es del compañero o de un intento anterior de Osval, e iniciar sesión con él.
 - Reemplazar contenido placeholder de `src/data/clinica.js` con info real (Osval no la tiene todavía).
 - Coordinación con el compañero: filtro `activo` en `GET /api/servicios` (relacionado con que `activo` no se expone todavía en ningún formulario admin).
 - Decidir si en algún momento se agrega el campo `imagen` a `Servicio` en el backend.
-- Conectar este repo a un remoto de GitHub (todavía no existe) y hacer el primer push — pendiente de que Osval cree el repo remoto él mismo, ver nota en el chat de hoy.
 
 ## Metodología de trabajo acordada
 - **Modo de trabajo actualizado 2026-08-21**: Osval prioriza sacar el proyecto rápido y aprovechar la suscripción — a partir de ahora Claude implementa directamente (no espera a que Osval escriba el código) y reserva las preguntas para decisiones de diseño de alto nivel, presentándolas **con trade-offs y una recomendación cuando la haya** (cambio respecto al modo anterior de "sin trade-offs ni recomendación"). Se mantiene el resto: Osval elige y justifica antes de que Claude implemente.
