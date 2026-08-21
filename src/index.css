@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Scroll suave al navegar por los anclas (#servicios, #contacto, ...) */
+html {
+  scroll-behavior: smooth;
+}
