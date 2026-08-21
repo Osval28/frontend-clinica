@@ -4,10 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { obtenerServicio } from '../../../api/servicios';
 import { obtenerOdontologos } from '../../../api/odontologos';
 import { obtenerHorasOcupadas } from '../../../api/citas';
-
-// Debe coincidir exactamente con el enum de Odontologo.horario.dia del backend
-// (incluye "Sabado" sin tilde).
-const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
+import { DIAS_SEMANA } from '../../../data/diasSemana';
 
 // Genera horas candidatas cada 30 minutos entre horaInicio y horaFin.
 // Se usa un paso fijo (no la duración del servicio) porque el backend
