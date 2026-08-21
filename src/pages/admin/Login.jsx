@@ -20,7 +20,7 @@ function Login() {
     try {
       const data = await loginRequest(correo, password);
       login(data.token, data.administrador);
-      navigate('/admin/dashboard');
+      navigate('/admin/citas');
     } catch (err) {
       setError(err.message);
     } finally {
