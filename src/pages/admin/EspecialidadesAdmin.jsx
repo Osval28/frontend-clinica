@@ -146,6 +146,15 @@ function EspecialidadesAdmin() {
 
   const editando = modal && modal !== 'crear' ? modal.editar : null;
 
+  // useMutation no limpia `error` solo porque el modal se cerró — sin este
+  // reset, el banner de un intento fallido anterior queda pegado la próxima
+  // vez que se abre el modal (crear o editar), aunque no tenga nada que ver.
+  const abrirModal = (valor) => {
+    mutCrear.reset();
+    mutActualizar.reset();
+    setModal(valor);
+  };
+
   const handleGuardar = (datos) => {
     if (editando) {
       mutActualizar.mutate({ id: editando._id, datos });
@@ -163,7 +172,7 @@ function EspecialidadesAdmin() {
         <h1 className="text-2xl font-semibold text-slate-800">Especialidades</h1>
         <button
           type="button"
-          onClick={() => setModal('crear')}
+          onClick={() => abrirModal('crear')}
           className="flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
@@ -202,7 +211,7 @@ function EspecialidadesAdmin() {
                         <div className="flex justify-end gap-3">
                           <button
                             type="button"
-                            onClick={() => setModal({ editar: especialidad })}
+                            onClick={() => abrirModal({ editar: especialidad })}
                             className="text-slate-400 transition hover:text-teal-600"
                             aria-label={`Editar ${especialidad.nombre}`}
                           >
