@@ -140,6 +140,9 @@ Ante cualquier decisión de diseño o implementación que este documento no cubr
 - **Chequeos de citas asociadas al eliminar (Odontólogos y Servicios) son perezosos, no precargados**: se disparan recién al abrir el modal de confirmación (`useQuery({ enabled: Boolean(aEliminar) })`), no junto con el listado — evita una llamada de red innecesaria en cada visita a la pantalla. Si el chequeo falla (ej. token vencido), se muestra una nota neutra pero **el botón de eliminar sigue habilitado** — consistente con "eliminar nunca bloquea, solo advierte".
 - **Bug encontrado y corregido: el banner de error de `useMutation` quedaba pegado entre aperturas del modal.** `useMutation` no limpia su `error` solo porque el modal se cerró, así que un intento fallido (ej. correo duplicado) seguía mostrando el mismo banner rojo la próxima vez que se abría el modal para crear o editar, aunque no tuviera nada que ver. Se agregó `mutCrear.reset()` / `mutActualizar.reset()` al abrir el modal en los 3 CRUD. Encontrado durante la verificación con Playwright de Odontólogos (una captura mostraba el error de un test anterior en la pantalla de edición); como `EspecialidadesAdmin.jsx` ya estaba comiteado y pusheado con el mismo bug, se corrigió con un commit nuevo (`fix: resetear error de mutacion al reabrir el modal de especialidades`) en vez de amend, para no reescribir historial ya en GitHub.
 
+### Admin de la DB — resuelto (2026-08-21, con Osval presente)
+El admin que ya existía en la DB era del compañero, que no recordaba sus credenciales. Osval lo borró directamente de MongoDB (con su connection string, vía `mongosh`/Compass — sin tocar el backend ni pasar por la app) filtrando por `correo` en la colección `administradors`, y después registró su propio admin con el `POST /api/auth/register` que él mismo había modificado para autobloquearse si ya existe ≥1 administrador. Credenciales guardadas por Osval (no se guardan acá). Con esto, `/admin/login` ya se puede usar con datos reales.
+
 ### Qué debe quedar listo para la revisión de mañana
 - Los 3 CRUD funcionando de punta a punta contra mocks (verificado con Playwright + capturas).
 - `vite build` limpio.
@@ -152,7 +155,6 @@ Ante cualquier decisión de diseño o implementación que este documento no cubr
 - Probar los 3 CRUD nuevos (Especialidades/Odontólogos/Servicios) y `/admin/citas` con el backend real prendido — toda la verificación de esta noche fue contra mocks, ver "Decisiones tomadas de forma autónoma" arriba.
 - Probar `/admin/citas` y el endpoint de disponibilidad con datos reales (ver fragilidad de fechas arriba) — requiere backend real, no es tarea nocturna.
 - Avisarle al compañero de los cambios pendientes en su backend: bloqueo de `/register`, endpoint de disponibilidad nuevo, y las rutas de escritura de servicios/odontólogos/especialidades sin `validarJWT`.
-- Confirmar si el admin que ya existe en la DB es del compañero o de un intento anterior de Osval, e iniciar sesión con él.
 - Reemplazar contenido placeholder de `src/data/clinica.js` con info real (Osval no la tiene todavía).
 - Coordinación con el compañero: filtro `activo` en `GET /api/servicios` (relacionado con que `activo` no se expone todavía en ningún formulario admin).
 - Decidir si en algún momento se agrega el campo `imagen` a `Servicio` en el backend.
