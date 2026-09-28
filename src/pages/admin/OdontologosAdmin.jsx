@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { Pencil, Trash2, Plus, AlertTriangle, UserRound } from 'lucide-react';
 import {
   obtenerOdontologos,
   crearOdontologo,
@@ -9,7 +9,10 @@ import {
 } from '../../api/odontologos';
 import { obtenerEspecialidades } from '../../api/especialidades';
 import { obtenerCitasOdontologo } from '../../api/citas';
+import { Link } from 'react-router-dom';
 import ModalFormulario from '../../components/admin/ModalFormulario';
+import EncabezadoPagina from '../../components/admin/EncabezadoPagina';
+import EstadoVacio from '../../components/admin/EstadoVacio';
 import { DIAS_EDITOR } from '../../data/diasSemana';
 
 const CAMPO_VACIO = {
@@ -52,7 +55,7 @@ function validar(form, filasHorario) {
   });
 
   if (!form.especialidad) {
-    errores.especialidad = 'Seleccioná una especialidad.';
+    errores.especialidad = 'Selecciona una especialidad.';
   }
 
   if (form.correo.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo.trim())) {
@@ -68,7 +71,7 @@ function validar(form, filasHorario) {
   });
 
   if (filasActivas.length === 0) {
-    errores.horario = 'Seleccioná al menos un día de atención.';
+    errores.horario = 'Selecciona al menos un día de atención.';
   } else if (erroresFilas.size > 0) {
     errores.horario = 'Revisá los horarios marcados: la hora de inicio debe ser menor a la de fin.';
   }
@@ -141,7 +144,7 @@ function FormularioOdontologo({
 
   const inputClase = (campo) =>
     `w-full rounded-md border px-3 py-2 text-sm focus:outline-none ${
-      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-teal-500'
+      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-marca-500'
     }`;
 
   return (
@@ -197,7 +200,10 @@ function FormularioOdontologo({
 
         {sinEspecialidadesDisponibles && (
           <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
-            Creá primero una especialidad.
+            Para registrar un odontólogo primero necesitas una especialidad.{' '}
+            <Link to="/admin/especialidades" className="font-semibold underline underline-offset-2">
+              Crear especialidad
+            </Link>
           </p>
         )}
 
@@ -208,7 +214,7 @@ function FormularioOdontologo({
             onChange={handleChange('especialidad')}
             className={inputClase('especialidad')}
           >
-            <option value="">Seleccioná una especialidad</option>
+            <option value="">Selecciona una especialidad</option>
             {especialidades.map((especialidad) => (
               <option key={especialidad._id} value={especialidad._id}>
                 {especialidad.nombre}
@@ -272,7 +278,10 @@ function FormularioOdontologo({
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-medium text-slate-700">Horario de atención</p>
+        <p className="text-sm font-medium text-slate-700">Horario de atención</p>
+        <p className="mb-2 text-xs text-slate-500">
+          Marca los días que atiende. Los pacientes solo podrán agendar en estos días y horas.
+        </p>
         <div className="space-y-1 rounded-md border border-slate-200 p-3">
           {filasHorario.map((fila, index) => (
             <div
@@ -284,9 +293,9 @@ function FormularioOdontologo({
                   type="checkbox"
                   checked={fila.activo}
                   onChange={(event) => handleFilaChange(index, { activo: event.target.checked })}
-                  className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                  className="h-4 w-4 rounded border-slate-300 text-marca-600 focus:ring-marca-500"
                 />
-                {fila.dia}
+                {fila.dia === 'Sabado' ? 'Sábado' : fila.dia}
               </label>
 
               <input
@@ -327,7 +336,7 @@ function FormularioOdontologo({
         <button
           type="submit"
           disabled={guardando || sinEspecialidadesDisponibles}
-          className="rounded-full bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-marca-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? 'Guardando...' : 'Guardar'}
         </button>
@@ -425,17 +434,19 @@ function OdontologosAdmin() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800">Odontólogos</h1>
+      <EncabezadoPagina
+        titulo="Odontólogos"
+        descripcion="Los profesionales que atienden. Su horario define los días y horas que el sitio ofrece a los pacientes."
+      >
         <button
           type="button"
           onClick={() => abrirModal('crear')}
-          className="flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+          className="flex items-center gap-2 rounded-full bg-marca-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-marca-700"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           Nuevo odontólogo
         </button>
-      </div>
+      </EncabezadoPagina>
 
       <div className="overflow-hidden rounded-lg bg-white shadow-sm">
         {status === 'pending' && (
@@ -448,7 +459,13 @@ function OdontologosAdmin() {
 
         {status === 'success' &&
           (data.odontologos.length === 0 ? (
-            <p className="p-6 text-center text-slate-500">No hay odontólogos registrados.</p>
+            <EstadoVacio
+              icono={UserRound}
+              titulo="Aún no hay odontólogos"
+              texto="Registra al odontólogo que atiende y marca sus días de atención. Sin esto, los pacientes no verán horarios para agendar."
+              accion="Registrar odontólogo"
+              onAccion={() => abrirModal('crear')}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -485,7 +502,7 @@ function OdontologosAdmin() {
                           <button
                             type="button"
                             onClick={() => abrirModal({ editar: odontologo })}
-                            className="text-slate-400 transition hover:text-teal-600"
+                            className="text-slate-400 transition hover:text-marca-600"
                             aria-label={`Editar ${odontologo.nombre}`}
                           >
                             <Pencil className="h-4 w-4" aria-hidden="true" />

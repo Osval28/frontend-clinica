@@ -1,6 +1,70 @@
 @import "tailwindcss";
 
-/* Scroll suave al navegar por los anclas (#servicios, #contacto, ...) */
+/* Color de marca: el rosa exacto del logo (media/logo.jpg), #DE127A, en el
+   paso 600. El resto de la escala se deriva en OKLCH con el mismo tono para
+   fondos claros, hovers y las bandas oscuras (TopBar, Contacto).
+   Blanco sobre marca-600 da 4.69:1 (AA para texto de botones). */
+@theme {
+  --color-marca-50: oklch(0.966 0.013 358.9);
+  --color-marca-100: oklch(0.943 0.026 358.9);
+  --color-marca-200: oklch(0.894 0.057 358.9);
+  --color-marca-300: oklch(0.818 0.105 358.9);
+  --color-marca-400: oklch(0.714 0.181 358.9);
+  --color-marca-500: oklch(0.652 0.225 358.9);
+  --color-marca-600: #de127a;
+  --color-marca-700: oklch(0.522 0.208 358.9);
+  --color-marca-800: oklch(0.456 0.175 358.9);
+  --color-marca-900: oklch(0.406 0.138 358.9);
+  --color-marca-950: oklch(0.282 0.102 358.9);
+}
+
+
+/* Scroll suave al navegar por los anclas (#servicios, #contacto, ...).
+   scroll-padding-top compensa el Navbar fijo (sticky) para que el título
+   de la sección no quede tapado al saltar a un ancla. */
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+::selection {
+  background-color: var(--color-marca-200);
+  color: var(--color-marca-900);
+}
+
+/* Fondo animado de las secciones claras de Home (ver FondoDientes.jsx). */
+.fondo-dientes__mascara {
+  /* Dientes nítidos en los bordes y tenues bajo el texto central. */
+  mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.5) 45%, #000 100%);
+}
+
+.fondo-dientes__carril {
+  background-repeat: repeat-x;
+  background-size: var(--tile) 100%;
+  animation: fondo-carril linear infinite;
+}
+
+/* Fuera de pantalla no hay nada que ver: se congela el movimiento. */
+.fondo-dientes[data-activo='false'] .fondo-dientes__carril {
+  animation-play-state: paused;
+}
+
+@keyframes fondo-carril {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--tile), 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* Sin desplazamiento: queda la composición de carriles, quieta. */
+  .fondo-dientes__carril {
+    animation: none;
+  }
 }

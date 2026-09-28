@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 
 // Estado elevado de todo el flujo de agendamiento (servicio, odontólogo,
 // fecha, hora, datos del paciente). Vive aquí porque las rutas hijas
@@ -9,6 +9,9 @@ import { Outlet } from 'react-router-dom';
 //
 // Decisión ya aceptada para el MVP: si se recarga la página a mitad del
 // flujo, este estado se pierde (no hay persistencia en localStorage ni URL).
+//
+// `datosPaciente` guarda lo que se va escribiendo en /agendar/datos, para
+// que volver a cambiar la fecha/hora no obligue a escribir todo de nuevo.
 //
 // `cita` se llena recién cuando POST /citas/solicitar responde con éxito
 // (ver DatosPaciente.jsx), con el documento completo que devuelve el
@@ -21,12 +24,26 @@ function FlujoAgendamiento() {
     odontologo: null,
     fecha: null,
     hora: null,
+    datosPaciente: null,
     cita: null,
   });
 
+  // Acepta un objeto o una función (prev) => cambios, para actualizaciones
+  // que dependen del estado anterior (p. ej. autocompletado del navegador
+  // llenando varios campos del formulario casi a la vez).
   const actualizarAgendamiento = (cambios) => {
-    setAgendamiento((prev) => ({ ...prev, ...cambios }));
+    setAgendamiento((prev) => ({
+      ...prev,
+      ...(typeof cambios === 'function' ? cambios(prev) : cambios),
+    }));
   };
+
+  // BrowserRouter no resetea el scroll al cambiar de ruta: sin esto, cada
+  // paso abriría a la altura donde el paciente hizo click en el anterior.
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [pathname]);
 
   return <Outlet context={{ agendamiento, actualizarAgendamiento }} />;
 }

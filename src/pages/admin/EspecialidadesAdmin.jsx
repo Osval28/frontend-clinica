@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { Pencil, Trash2, Plus, AlertTriangle, Tag } from 'lucide-react';
 import {
   obtenerEspecialidades,
   crearEspecialidad,
@@ -9,6 +9,8 @@ import {
 } from '../../api/especialidades';
 import { obtenerOdontologos } from '../../api/odontologos';
 import ModalFormulario from '../../components/admin/ModalFormulario';
+import EncabezadoPagina from '../../components/admin/EncabezadoPagina';
+import EstadoVacio from '../../components/admin/EstadoVacio';
 
 const CAMPO_VACIO = { nombre: '', descripcion: '' };
 
@@ -39,7 +41,7 @@ function FormularioEspecialidad({ inicial, onGuardar, onCerrar, guardando, error
 
   const inputClase = (campo) =>
     `w-full rounded-md border px-3 py-2 text-sm focus:outline-none ${
-      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-teal-500'
+      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-marca-500'
     }`;
 
   return (
@@ -89,7 +91,7 @@ function FormularioEspecialidad({ inicial, onGuardar, onCerrar, guardando, error
         <button
           type="submit"
           disabled={guardando}
-          className="rounded-full bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-marca-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? 'Guardando...' : 'Guardar'}
         </button>
@@ -168,17 +170,19 @@ function EspecialidadesAdmin() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800">Especialidades</h1>
+      <EncabezadoPagina
+        titulo="Especialidades"
+        descripcion="Las áreas de atención de la clínica. Cada odontólogo se asocia a una."
+      >
         <button
           type="button"
           onClick={() => abrirModal('crear')}
-          className="flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+          className="flex items-center gap-2 rounded-full bg-marca-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-marca-700"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           Nueva especialidad
         </button>
-      </div>
+      </EncabezadoPagina>
 
       <div className="overflow-hidden rounded-lg bg-white shadow-sm">
         {status === 'pending' && (
@@ -191,7 +195,13 @@ function EspecialidadesAdmin() {
 
         {status === 'success' &&
           (data.especialidades.length === 0 ? (
-            <p className="p-6 text-center text-slate-500">No hay especialidades registradas.</p>
+            <EstadoVacio
+              icono={Tag}
+              titulo="Aún no hay especialidades"
+              texto="Crea la primera (por ejemplo, Ortodoncia o Radiología oral). La necesitarás para registrar odontólogos."
+              accion="Crear especialidad"
+              onAccion={() => abrirModal('crear')}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -212,7 +222,7 @@ function EspecialidadesAdmin() {
                           <button
                             type="button"
                             onClick={() => abrirModal({ editar: especialidad })}
-                            className="text-slate-400 transition hover:text-teal-600"
+                            className="text-slate-400 transition hover:text-marca-600"
                             aria-label={`Editar ${especialidad.nombre}`}
                           >
                             <Pencil className="h-4 w-4" aria-hidden="true" />

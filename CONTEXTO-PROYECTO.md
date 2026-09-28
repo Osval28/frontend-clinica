@@ -58,19 +58,18 @@ El campo `activo` existe en Paciente/Odontologo/Servicio/Especialidad pero hoy n
 src/
   api/            → client.js, auth.js, citas.js, odontologos.js, servicios.js, especialidades.js
   components/
-    public/       → TopBar, Navbar, Hero, Bienvenida, Servicios, Novedades, Contacto, Footer, EncabezadoFlujo (marca + volver + indicador de pasos del agendamiento)
-    admin/        → Sidebar.jsx, AdminLayout.jsx, ModalFormulario.jsx (chrome de modal compartido por los 3 CRUD), EncabezadoPagina.jsx, EstadoVacio.jsx, ChecklistConfiguracion.jsx (guía de primera configuración en Citas, se oculta sola)
+    public/       → TopBar, Navbar, Hero, Bienvenida, Servicios, Novedades, Contacto, Footer
+    admin/        → Sidebar.jsx, AdminLayout.jsx, ModalFormulario.jsx (chrome de modal compartido por los 3 CRUD)
   context/        → AuthContext.jsx
-  data/           → clinica.js (contenido estático del sitio, todavía placeholder), diasSemana.js (fuente única de los 7 nombres de día que exige el backend), agendamiento.js (fuente única de los pasos del flujo: guía del Home + indicador de progreso)
+  data/           → clinica.js (contenido estático del sitio, todavía placeholder), diasSemana.js (fuente única de los 7 nombres de día que exige el backend)
   pages/
     admin/        → Login.jsx, Citas.jsx, ServiciosAdmin.jsx, OdontologosAdmin.jsx, EspecialidadesAdmin.jsx
     public/       → Home.jsx, FlujoAgendamiento.jsx (padre del flujo de agendamiento)
       agendar/    → ServicioDetalle.jsx, DatosPaciente.jsx, Confirmacion.jsx
   routes/         → ProtectedRoute.jsx
-  utils/          → formato.js (fechas YYYY-MM-DD en hora local, precios COP, suma de minutos)
 ```
 
-**Estado**: sesión de admin (token + datos) en Context + localStorage. Datos remotos con TanStack Query. El flujo público de agendamiento eleva su estado en `FlujoAgendamiento.jsx` y lo expone a las rutas hijas vía `Outlet context` — se pierde si se recarga a mitad del flujo (aceptado para el MVP). Los datos del paciente también viven ahí (`datosPaciente`) para que ir a "Cambiar" el horario y volver no borre lo escrito.
+**Estado**: sesión de admin (token + datos) en Context + localStorage. Datos remotos con TanStack Query. El flujo público de agendamiento eleva su estado en `FlujoAgendamiento.jsx` y lo expone a las rutas hijas vía `Outlet context` — se pierde si se recarga a mitad del flujo (aceptado para el MVP).
 
 **Panel admin** (`/admin/*`): CRUD completo para especialidades, odontólogos y servicios, además de la vista de citas (filtro por fecha). Patrón común: tabla + modal de creación/edición, validación en cliente antes de llamar al backend, y al eliminar un recurso con datos asociados (por ejemplo un odontólogo con citas, o una especialidad en uso) se advierte la cantidad pero no se bloquea la acción.
 

@@ -16,7 +16,7 @@ function Hero() {
       <div className="absolute inset-0 flex items-center">
         <div className="mx-auto w-full max-w-6xl px-4">
           <div className="max-w-xl text-white">
-            <span className="mb-4 inline-block rounded-full bg-teal-600/90 px-4 py-1 text-xs font-semibold uppercase tracking-wide">
+            <span className="mb-4 inline-block rounded-full bg-marca-600/90 px-4 py-1 text-xs font-semibold uppercase tracking-wide">
               {CLINICA.eslogan}
             </span>
             <h1 className="text-4xl font-bold leading-tight sm:text-5xl">
@@ -29,7 +29,7 @@ function Hero() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href="#servicios"
-                className="rounded-full bg-teal-600 px-7 py-3 text-center text-sm font-semibold transition hover:bg-teal-700"
+                className="rounded-full bg-marca-600 px-7 py-3 text-center text-sm font-semibold transition hover:bg-marca-700"
               >
                 Agendar mi cita
               </a>

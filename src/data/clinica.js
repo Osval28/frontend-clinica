@@ -62,3 +62,11 @@ export const NOVEDADES = [
       'Durante este mes, los pacientes nuevos reciben una valoración odontológica inicial completamente gratuita.',
   },
 ];
+
+// Indicaciones que ve el paciente al terminar de agendar (Confirmacion.jsx).
+// TODO: confirmar con la clínica — son sugerencias genéricas, no políticas reales.
+export const INDICACIONES_CITA = [
+  'Llega 10 minutos antes de tu hora.',
+  'Trae tu documento de identidad.',
+  'Si tienes radiografías o exámenes previos, tráelos contigo.',
+];

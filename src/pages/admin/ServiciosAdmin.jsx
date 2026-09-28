@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { Pencil, Trash2, Plus, AlertTriangle, Stethoscope } from 'lucide-react';
 import {
   obtenerServicios,
   crearServicio,
@@ -9,6 +9,9 @@ import {
 } from '../../api/servicios';
 import { obtenerCitas } from '../../api/citas';
 import ModalFormulario from '../../components/admin/ModalFormulario';
+import EncabezadoPagina from '../../components/admin/EncabezadoPagina';
+import EstadoVacio from '../../components/admin/EstadoVacio';
+import { formatearPrecio } from '../../utils/formato';
 
 const CAMPO_VACIO = { nombre: '', descripcion: '', precio: '', duracion: '' };
 
@@ -23,7 +26,7 @@ function validar(form) {
   if (!form.precio.trim()) {
     errores.precio = 'Este campo es obligatorio.';
   } else if (Number.isNaN(Number(form.precio))) {
-    errores.precio = 'Ingresá un número válido.';
+    errores.precio = 'Ingresa un número válido.';
   } else if (Number(form.precio) < 0) {
     errores.precio = 'El precio no puede ser negativo.';
   }
@@ -31,7 +34,7 @@ function validar(form) {
   if (!form.duracion.trim()) {
     errores.duracion = 'Este campo es obligatorio.';
   } else if (Number.isNaN(Number(form.duracion))) {
-    errores.duracion = 'Ingresá un número válido.';
+    errores.duracion = 'Ingresa un número válido.';
   } else if (!Number.isInteger(Number(form.duracion))) {
     errores.duracion = 'La duración debe ser un número entero de minutos.';
   } else if (Number(form.duracion) <= 0) {
@@ -74,7 +77,7 @@ function FormularioServicio({ inicial, onGuardar, onCerrar, guardando, errorEnvi
 
   const inputClase = (campo) =>
     `w-full rounded-md border px-3 py-2 text-sm focus:outline-none ${
-      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-teal-500'
+      errores[campo] ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-marca-500'
     }`;
 
   return (
@@ -116,18 +119,25 @@ function FormularioServicio({ inicial, onGuardar, onCerrar, guardando, errorEnvi
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="precio" className="mb-1 block text-sm font-medium text-slate-700">
-            Precio
+            Precio (pesos, sin puntos)
           </label>
           <input
             id="precio"
             type="number"
             step="0.01"
             min="0"
+            placeholder="100000"
             value={form.precio}
             onChange={handleChange('precio')}
             className={inputClase('precio')}
           />
-          {errores.precio && <p className="mt-1 text-xs text-red-600">{errores.precio}</p>}
+          {errores.precio ? (
+            <p className="mt-1 text-xs text-red-600">{errores.precio}</p>
+          ) : (
+            form.precio.trim() && !Number.isNaN(Number(form.precio)) && (
+              <p className="mt-1 text-xs text-slate-500">Se mostrará como {formatearPrecio(Number(form.precio))}</p>
+            )
+          )}
         </div>
 
         <div>
@@ -158,7 +168,7 @@ function FormularioServicio({ inicial, onGuardar, onCerrar, guardando, errorEnvi
         <button
           type="submit"
           disabled={guardando}
-          className="rounded-full bg-teal-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full bg-marca-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-marca-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {guardando ? 'Guardando...' : 'Guardar'}
         </button>
@@ -254,17 +264,19 @@ function ServiciosAdmin() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800">Servicios</h1>
+      <EncabezadoPagina
+        titulo="Servicios"
+        descripcion="Lo que los pacientes pueden agendar desde el sitio. Se muestran con su precio y duración."
+      >
         <button
           type="button"
           onClick={() => abrirModal('crear')}
-          className="flex items-center gap-2 rounded-full bg-teal-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-700"
+          className="flex items-center gap-2 rounded-full bg-marca-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-marca-700"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           Nuevo servicio
         </button>
-      </div>
+      </EncabezadoPagina>
 
       <div className="overflow-hidden rounded-lg bg-white shadow-sm">
         {status === 'pending' && (
@@ -277,7 +289,13 @@ function ServiciosAdmin() {
 
         {status === 'success' &&
           (data.servicios.length === 0 ? (
-            <p className="p-6 text-center text-slate-500">No hay servicios registrados.</p>
+            <EstadoVacio
+              icono={Stethoscope}
+              titulo="Aún no hay servicios"
+              texto="Los servicios que crees aparecerán en la página de inicio para que los pacientes elijan y agenden."
+              accion="Crear servicio"
+              onAccion={() => abrirModal('crear')}
+            />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
@@ -295,14 +313,14 @@ function ServiciosAdmin() {
                     <tr key={servicio._id}>
                       <td className="px-4 py-3 font-medium text-slate-800">{servicio.nombre}</td>
                       <td className="px-4 py-3 text-slate-600">{servicio.descripcion}</td>
-                      <td className="px-4 py-3 text-slate-600">${servicio.precio}</td>
+                      <td className="px-4 py-3 tabular-nums text-slate-600">{formatearPrecio(servicio.precio)}</td>
                       <td className="px-4 py-3 text-slate-600">{servicio.duracion} min</td>
                       <td className="px-4 py-3">
                         <div className="flex justify-end gap-3">
                           <button
                             type="button"
                             onClick={() => abrirModal({ editar: servicio })}
-                            className="text-slate-400 transition hover:text-teal-600"
+                            className="text-slate-400 transition hover:text-marca-600"
                             aria-label={`Editar ${servicio.nombre}`}
                           >
                             <Pencil className="h-4 w-4" aria-hidden="true" />

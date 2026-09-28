@@ -5,26 +5,26 @@ import { CLINICA } from '../../data/clinica';
 // y usa un color propio (más oscuro) para diferenciarse del navbar blanco.
 function TopBar() {
   return (
-    <div className="bg-teal-800 text-white">
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-1 px-4 py-2 text-xs sm:flex-row sm:text-sm">
+    <div className="bg-marca-800 text-white">
+      <div className="flex w-full flex-col items-center justify-between gap-1 px-4 py-2 sm:px-6 lg:px-10 text-xs sm:flex-row sm:text-sm">
         <div className="flex items-center gap-4">
           <a
             href={CLINICA.telefonoLink}
-            className="flex items-center gap-1.5 transition hover:text-teal-200"
+            className="flex items-center gap-1.5 transition hover:text-marca-200"
           >
             <Phone className="h-3.5 w-3.5" aria-hidden="true" />
             <span className="font-medium">{CLINICA.telefono}</span>
           </a>
           <a
             href={`mailto:${CLINICA.correo}`}
-            className="hidden items-center gap-1.5 transition hover:text-teal-200 sm:flex"
+            className="hidden items-center gap-1.5 transition hover:text-marca-200 sm:flex"
           >
             <Mail className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{CLINICA.correo}</span>
           </a>
         </div>
 
-        <span className="hidden text-teal-100 lg:block">{CLINICA.horario}</span>
+        <span className="hidden text-marca-100 lg:block">{CLINICA.horario}</span>
       </div>
     </div>
   );
